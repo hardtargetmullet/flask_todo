@@ -1,4 +1,5 @@
 from flask import Flask
+from flask import jsonify
 from flask import render_template
 from flask import request
 from flask import redirect
@@ -25,8 +26,11 @@ def index():
 
 @app.route('/todos/create', methods=['POST'])
 def create():
-    text_str = request.form.get('description', 'describe task here.')
+    text_str = request.get_json()['description']
     task = Todo(description=text_str)
     db.session.add(task)
     db.session.commit()
-    return redirect(url_for('index'))
+    print(task)
+    return jsonify({
+        'description': task.description
+    })
