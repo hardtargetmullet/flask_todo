@@ -1,4 +1,6 @@
+import sys
 from flask import Flask
+from flask import abort
 from flask import jsonify
 from flask import render_template
 from flask import request
@@ -26,11 +28,21 @@ def index():
 
 @app.route('/todos/create', methods=['POST'])
 def create():
-    text_str = request.get_json()['description']
-    task = Todo(description=text_str)
-    db.session.add(task)
-    db.session.commit()
-    print(task)
-    return jsonify({
-        'description': task.description
-    })
+    error = False
+    body = {}
+    try:
+        text_str = request.get_json()['description']
+        task = Todo(description=text_str)
+        db.session.add(task)
+        db.session.commit()
+        body['description'] = task.description
+    except:
+        error = True
+        db.session.rollback()  
+        print(sys.exc_info())
+    finally:
+        db.session.close()
+    if error:
+        return abort(500)
+    else:
+        return jsonify(body)
