@@ -11,6 +11,7 @@ from flask_migrate import Migrate
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://postgres:password@localhost:5432/todoapp'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 migrate = Migrate(app, db)
@@ -20,13 +21,19 @@ class Todo(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.String(), nullable=False)
     completed = db.Column(db.Boolean, nullable=False, default=False)
+    list_id = db.Column(db.Integer, db.ForeignKey('todolists.id'), nullable=False)
 
     def __repr__(self):
         return f'<Todo - id: {self.id}, description: {self.description} >'
 
-@app.route('/')
-def index():
-    return render_template('index.html', todos=Todo.query.order_by('id').all())
+class TodoList(db.Model):
+    __tablename__ = 'todolists'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(), nullable=False)
+    todos = db.relationship('Todo', backref='list', cascade='all, delete-orphan')
+
+    def __repr__(self):
+        return f'<TodoList - id: {self.id}, name - {self.name}>'
 
 @app.route('/todos/create', methods=['POST'])
 def create():
@@ -34,10 +41,12 @@ def create():
     body = {}
     try:
         text_str = request.get_json()['description']
-        task = Todo(description=text_str)
-        db.session.add(task)
+        todo = Todo(description=text_str, completed=False)
+        db.session.add(todo)
         db.session.commit()
-        body['description'] = task.description
+        body['id'] = todo.id
+        body['completed'] = todo.completed
+        body['description'] = todo.description
     except:
         error = True
         db.session.rollback()  
@@ -46,7 +55,7 @@ def create():
         db.session.close()
 
     if error:
-        return abort(500)
+        return abort(400)
     else:
         return jsonify(body)
 
@@ -69,3 +78,28 @@ def set_completed_todo(todo_id):
         return abort(500)
     else:
         return redirect(url_for('index'))
+
+@app.route('/todos/<todo_id>', methods=['DELETE'])
+def delete_todo(todo_id):
+    error = False
+    try:
+        print("Trying to Erase: ", todo_id)
+        todo = Todo.query.order_by('id').get(todo_id)
+        db.session.delete(todo)
+        db.session.commit()
+    except:
+        print("SOMETHING FUCKED UP")
+        error = True
+        db.session.rollback()
+        print(sys.exc_info())
+    finally:
+        db.session.close()
+
+    if error:
+        return abort(500)
+    else:
+        return jsonify({ 'success': True })
+
+@app.route('/')
+def index():
+    return render_template('index.html', todos=Todo.query.order_by('id').all())
