@@ -40,6 +40,7 @@ def create():
     error = False
     body = {}
     try:
+        print("almost there")
         text_str = request.get_json()['description']
         todo = Todo(description=text_str, completed=False, list_id=1)
         db.session.add(todo)
@@ -106,6 +107,31 @@ def get_list_todos(list_id):
     lists=TodoList.query.all(),
     active_list=TodoList.query.get(list_id),
     todos=Todo.query.filter_by(list_id=list_id).order_by('id').all())
+
+@app.route('/list/create', methods=['POST'])
+def create_list():
+    error = False
+    body = {}
+    try:
+        text_str = request.get_json()['name']
+        todo_list = TodoList(name=text_str)
+        db.session.add(todo_list)
+        db.session.commit()
+        print(todo_list)
+        body['id'] = todo_list.id
+        #body['completed'] = todo.completed
+        body['name'] = todo_list.name
+    except:
+        error = True
+        db.session.rollback()  
+        print(sys.exc_info())
+    finally:
+        db.session.close()
+
+    if error:
+        return abort(500)
+    else:
+        return jsonify(body)
 
 @app.route('/')
 def index():
