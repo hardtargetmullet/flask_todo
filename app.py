@@ -41,7 +41,7 @@ def create():
     body = {}
     try:
         text_str = request.get_json()['description']
-        todo = Todo(description=text_str, completed=False)
+        todo = Todo(description=text_str, completed=False, list_id=1)
         db.session.add(todo)
         db.session.commit()
         body['id'] = todo.id
@@ -100,6 +100,13 @@ def delete_todo(todo_id):
     else:
         return jsonify({ 'success': True })
 
+@app.route('/list/<list_id>')
+def get_list_todos(list_id):
+    return render_template('index.html',
+    lists=TodoList.query.all(),
+    active_list=TodoList.query.get(list_id),
+    todos=Todo.query.filter_by(list_id=list_id).order_by('id').all())
+
 @app.route('/')
 def index():
-    return render_template('index.html', todos=Todo.query.order_by('id').all())
+    return redirect(url_for('get_list_todos', list_id=1))
