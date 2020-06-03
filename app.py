@@ -30,6 +30,7 @@ class TodoList(db.Model):
     __tablename__ = 'todolists'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(), nullable=False)
+    completed = db.Column(db.Boolean, nullable=False, default=False)
     todos = db.relationship('Todo', backref='list', cascade='all, delete-orphan')
 
     def __repr__(self):
@@ -86,8 +87,9 @@ def set_completed_list(list_id):
     try:
         completed = request.get_json()['completed']
         todo_list = TodoList.query.get(list_id)
+        todo_list.completed = completed
         for todo in todo_list.todos:
-            todo.completed = not todo.completed
+            todo.completed = completed
         db.session.commit()
     except:
         error = True
@@ -138,9 +140,9 @@ def create_list():
         todo_list = TodoList(name=text_str)
         db.session.add(todo_list)
         db.session.commit()
-        print(todo_list)
+
         body['id'] = todo_list.id
-        #body['completed'] = todo.completed
+        body['completed'] = todo_list.completed
         body['name'] = todo_list.name
     except:
         error = True

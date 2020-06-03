@@ -41,7 +41,7 @@
       <ul id="lists">
         {% for list in lists %}
         <li>
-          <input class="checkbox-list" data-id="{{ list.id }}" type="checkbox">
+          <input class="checkbox-list" data-id="{{ list.id }}" type="checkbox" {% if list.completed %} checked {% endif %} >
           <a href="/list/{{ list.id }}">
             {{ list.name }}
           </a>
