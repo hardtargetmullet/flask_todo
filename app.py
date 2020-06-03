@@ -24,7 +24,7 @@ class Todo(db.Model):
     list_id = db.Column(db.Integer, db.ForeignKey('todolists.id'), nullable=False)
 
     def __repr__(self):
-        return f'<Todo - id: {self.id}, description: {self.description} >'
+        return f'<Todo - id: {self.id}, description: {self.description}, completed: {self.completed} >'
 
 class TodoList(db.Model):
     __tablename__ = 'todolists'
@@ -86,8 +86,9 @@ def set_completed_list(list_id):
     try:
         completed = request.get_json()['completed']
         todo_list = TodoList.query.get(list_id)
-        print(todo_list)
-        # todo add completed todos inside this list.
+        for todo in todo_list.todos:
+            todo.completed = not todo.completed
+        db.session.commit()
     except:
         error = True
         db.session.rollback()
