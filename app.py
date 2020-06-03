@@ -80,6 +80,26 @@ def set_completed_todo(todo_id):
     else:
         return redirect(url_for('index'))
 
+@app.route('/list/<list_id>/set-completed', methods=['POST'])
+def set_completed_list(list_id):
+    error = False
+    try:
+        completed = request.get_json()['completed']
+        todo_list = TodoList.query.get(list_id)
+        print(todo_list)
+        # todo add completed todos inside this list.
+    except:
+        error = True
+        db.session.rollback()
+        print(sys.exc_info())
+    finally:
+        db.session.close()
+
+    if error:
+        return abort(500)
+    else:
+        return redirect(url_for('index'))
+
 @app.route('/todos/<todo_id>', methods=['DELETE'])
 def delete_todo(todo_id):
     error = False
