@@ -5,6 +5,9 @@
       .hidden {
         display: none;
       }
+      #lists {
+        width: 200px;
+      }
       ul {
         list-style: none;
         padding: 0;
@@ -23,6 +26,7 @@
         cursor: pointer;
         font-size: 20px;
       }
+      
       .lists-wrapper, .todos-wrapper {
         display: inline-block;
         vertical-align: top;
@@ -45,18 +49,19 @@
           <a href="/list/{{ list.id }}">
             {{ list.name }}
           </a>
-          <!-- TODO : delete button for list -->
+          <button class="del-list-button" data-id="{{ list.id }}">&cross;</button>
         </li>
         {% endfor %}
       </ul>
     </div>
     <div class="todos-wrapper">
-      <h4 id="active-list" data-id="{{ active_list.id }}">{{ active_list.name }}</h4>
+      <h2>TODO ITEMS</h2>
       <form id="todos-form" method="post" action="/todos/create">
         <label for="todos-form">Create a To-Do Item:</label>
         <input type="text" id="description" name="description" />
         <input type="submit" value="&plus;" />
       </form>
+      <h4 id="active-list" data-id="{{ active_list.id }}">{{ active_list.name }}</h4>
       <div id="error" class="hidden">Something went wrong!</div>
       <ul id="todos">
         {% for todo in todos %}
@@ -170,17 +175,23 @@
           
           const liId = jsonResponse['id'];
           const checkbox = document.createElement('input');
-          const anchor = document.createElement('a');
 
+          const anchor = document.createElement('a');
           anchor.setAttribute('href', '/list/' + liId);
-          
+
+          const delBtn = document.createElement('button');
+          delBtn.className = 'del-list-button';
+          delBtn.setAttribute('data-id', liId);
+          delBtn.innerHTML = '&cross;';
+
           checkbox.className = 'checkbox-list';
           checkbox.type = 'checkbox';
           checkbox.setAttribute('data-id', jsonResponse.id);
           const aText  = document.createTextNode(' ' + jsonResponse['name']);
           liList.appendChild(checkbox);
           anchor.appendChild(aText);
-          liList.appendChild(anchor);  
+          liList.appendChild(anchor);
+          liList.appendChild(delBtn);
           document.getElementById('lists').append(liList);
           document.getElementById('list-error').className = 'hidden';
         })
@@ -210,6 +221,22 @@
           })
           .catch(function() {
             document.getElementById('error').className = '';
+          })
+        }
+      }
+      const deleteListBtns = document.querySelectorAll('.del-list-button');
+      for (let i = 0; i < deleteListBtns.length; i++) {
+        const btn = deleteListBtns[i];
+        btn.onclick = function(e) {
+          console.log('event', e);
+          const listId = e.target.dataset['id'];
+          console.log(listId);
+          fetch('/list/' + listId, {
+            method: 'DELETE'
+          })
+          .then(function(){
+            const item = e.target.parentElement;
+            item.remove();
           })
         }
       }
