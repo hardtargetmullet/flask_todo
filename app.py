@@ -36,14 +36,13 @@ class TodoList(db.Model):
     def __repr__(self):
         return f'<TodoList - id: {self.id}, name - {self.name}>'
 
-@app.route('/todos/create', methods=['POST'])
-def create():
+@app.route('/<list_id>/todos/create', methods=['POST'])
+def create(list_id):
     error = False
     body = {}
     try:
-        print("almost there")
         text_str = request.get_json()['description']
-        todo = Todo(description=text_str, completed=False, list_id=1)
+        todo = Todo(description=text_str, completed=False, list_id=list_id)
         db.session.add(todo)
         db.session.commit()
         body['id'] = todo.id
@@ -107,12 +106,28 @@ def set_completed_list(list_id):
 def delete_todo(todo_id):
     error = False
     try:
-        print("Trying to Erase: ", todo_id)
         todo = Todo.query.order_by('id').get(todo_id)
         db.session.delete(todo)
         db.session.commit()
     except:
-        print("SOMETHING FUCKED UP")
+        error = True
+        db.session.rollback()
+        print(sys.exc_info())
+    finally:
+        db.session.close()
+
+    if error:
+        return abort(500)
+    else:
+        return jsonify({ 'success': True })
+
+@app.route('/list/<list_id>', methods=['DELETE'])
+def delete_list(list_id):
+    error = True
+    try:
+        # todo : delete list_id from back end
+        pass
+    except:
         error = True
         db.session.rollback()
         print(sys.exc_info())
