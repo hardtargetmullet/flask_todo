@@ -123,10 +123,12 @@ def delete_todo(todo_id):
 
 @app.route('/list/<list_id>', methods=['DELETE'])
 def delete_list(list_id):
-    error = True
+    error = False
     try:
-        # todo : delete list_id from back end
-        pass
+        todo_list = TodoList.query.order_by('id').get(list_id)
+        print("Delete list: ", todo_list)
+        db.session.delete(todo_list)
+        db.session.commit()
     except:
         error = True
         db.session.rollback()
