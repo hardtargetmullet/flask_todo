@@ -237,6 +237,10 @@
           .then(function(){
             const item = e.target.parentElement;
             item.remove();
+            const activeList = document.getElementById("active-list");
+            activeList.remove();
+            const ulItems = document.getElementById("todos");
+            ulItems.remove();
           })
         }
       }
