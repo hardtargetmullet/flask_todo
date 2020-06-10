@@ -1,9 +1,29 @@
+html {
+  font-family: sans-serif;
+  /* background: #eee; */
+  padding: 1rem;
+}
+
+.todos-wrapper {
+  background-color: gray;
+  border: 
+}
+
+body {
+  max-width: 980px;
+  margin: 0 auto;
+  background-color: white;
+  border: 1px;
+}
+
 .hidden {
   display: none;
 }
 
-#lists {
-  width: 200px;
+.lists-wrapper {
+  width: 300px;
+  padding: 0 1rem 1rem;
+  background: slategray;
 }
 
 ul {
